@@ -1,14 +1,15 @@
-import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { toast } from "react-toastify"
-import TaskForm from "@/components/organisms/TaskForm"
-import TaskList from "@/components/organisms/TaskList"
-import FilterControls from "@/components/molecules/FilterControls"
-import SortControls from "@/components/molecules/SortControls"
-import CompletionAnimation from "@/components/organisms/CompletionAnimation"
-import Empty from "@/components/ui/Empty"
-import { taskService } from "@/services/api/taskService"
-import ApperIcon from "@/components/ApperIcon"
+import React, { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { toast } from "react-toastify";
+import { taskService } from "@/services/api/taskService";
+import ApperIcon from "@/components/ApperIcon";
+import SortControls from "@/components/molecules/SortControls";
+import FilterControls from "@/components/molecules/FilterControls";
+import Loading from "@/components/ui/Loading";
+import Empty from "@/components/ui/Empty";
+import CompletionAnimation from "@/components/organisms/CompletionAnimation";
+import TaskForm from "@/components/organisms/TaskForm";
+import TaskList from "@/components/organisms/TaskList";
 
 const TaskFlow = () => {
   const [tasks, setTasks] = useState([])
@@ -47,17 +48,19 @@ const TaskFlow = () => {
     }
   }
 
-  const handleUpdateTask = async (id, updates) => {
+const handleUpdateTask = async (id, updates) => {
     try {
       const updatedTask = await taskService.update(id, updates)
-      setTasks(prev => prev.map(task => task.Id === id ? updatedTask : task))
-      
-      if (updates.status === "completed") {
-        setShowCompletion(true)
-        setTimeout(() => setShowCompletion(false), 1000)
-        toast.success("Task completed! Great job! 🎉")
-      } else {
-        toast.success("Task updated successfully!")
+      if (updatedTask) {
+        setTasks(prev => prev.map(task => task.Id === id ? updatedTask : task))
+        
+        if (updates.status_c === "completed" || updates.status === "completed") {
+          setShowCompletion(true)
+          setTimeout(() => setShowCompletion(false), 1000)
+          toast.success("Task completed! Great job! 🎉")
+        } else {
+          toast.success("Task updated successfully!")
+        }
       }
     } catch (err) {
       toast.error("Failed to update task")
@@ -81,28 +84,33 @@ const TaskFlow = () => {
 
     // Apply filter
     if (filter === "active") {
-      filtered = tasks.filter(task => task.status === "active")
+      filtered = tasks.filter(task => (task.status_c || task.status) === "active")
     } else if (filter === "completed") {
-      filtered = tasks.filter(task => task.status === "completed")
+      filtered = tasks.filter(task => (task.status_c || task.status) === "completed")
     }
 
     // Apply sort
     return filtered.sort((a, b) => {
       if (sortBy === "priority") {
         const priorityOrder = { high: 3, medium: 2, low: 1 }
-        return priorityOrder[b.priority] - priorityOrder[a.priority]
+        const aPriority = a.priority_c || a.priority;
+        const bPriority = b.priority_c || b.priority;
+        return priorityOrder[bPriority] - priorityOrder[aPriority]
       } else if (sortBy === "created") {
-        return new Date(b.createdAt) - new Date(a.createdAt)
+        const aDate = new Date(a.created_at_c || a.createdAt || a.CreatedOn);
+        const bDate = new Date(b.created_at_c || b.createdAt || b.CreatedOn);
+        return bDate - aDate;
       }
       return 0
     })
   }
 
-  const displayTasks = filteredAndSortedTasks()
+const displayTasks = filteredAndSortedTasks()
+  
   const taskStats = {
     total: tasks.length,
-    active: tasks.filter(t => t.status === "active").length,
-    completed: tasks.filter(t => t.status === "completed").length,
+    active: tasks.filter(t => (t.status_c || t.status) === "active").length,
+    completed: tasks.filter(t => (t.status_c || t.status) === "completed").length,
   }
 
   if (loading) {

@@ -7,29 +7,30 @@ import ApperIcon from "@/components/ApperIcon"
 
 const TaskCard = ({ task, onUpdate, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false)
-  const [editTitle, setEditTitle] = useState(task.title)
-  const [editDescription, setEditDescription] = useState(task.description || "")
+  const [editTitle, setEditTitle] = useState(task.title_c || task.title || "")
+  const [editDescription, setEditDescription] = useState(task.description_c || task.description || "")
 
   const handleToggleComplete = () => {
+    const currentStatus = task.status_c || task.status;
     onUpdate(task.Id, {
-      status: task.status === "completed" ? "active" : "completed",
-      completedAt: task.status === "completed" ? null : new Date().toISOString()
+      status_c: currentStatus === "completed" ? "active" : "completed",
+      completed_at_c: currentStatus === "completed" ? null : new Date().toISOString()
     })
   }
 
-  const handleSaveEdit = () => {
+const handleSaveEdit = () => {
     if (!editTitle.trim()) return
     
     onUpdate(task.Id, {
-      title: editTitle.trim(),
-      description: editDescription.trim()
+      title_c: editTitle.trim(),
+      description_c: editDescription.trim()
     })
     setIsEditing(false)
   }
 
-  const handleCancelEdit = () => {
-    setEditTitle(task.title)
-    setEditDescription(task.description || "")
+const handleCancelEdit = () => {
+    setEditTitle(task.title_c || task.title || "")
+    setEditDescription(task.description_c || task.description || "")
     setIsEditing(false)
   }
 
@@ -42,7 +43,7 @@ const TaskCard = ({ task, onUpdate, onDelete }) => {
     }
   }
 
-  const isCompleted = task.status === "completed"
+const isCompleted = (task.status_c || task.status) === "completed"
 
   return (
     <motion.div
@@ -110,18 +111,18 @@ const TaskCard = ({ task, onUpdate, onDelete }) => {
               </div>
             ) : (
               <>
-                <h3 className={cn(
+<h3 className={cn(
                   "text-lg font-semibold text-slate-900 leading-tight",
                   isCompleted && "line-through text-slate-500"
                 )}>
-                  {task.title}
+                  {task.title_c || task.title}
                 </h3>
-                {task.description && (
+{(task.description_c || task.description) && (
                   <p className={cn(
                     "text-slate-600 text-sm leading-relaxed",
                     isCompleted && "line-through text-slate-400"
                   )}>
-                    {task.description}
+                    {task.description_c || task.description}
                   </p>
                 )}
               </>
@@ -129,17 +130,17 @@ const TaskCard = ({ task, onUpdate, onDelete }) => {
           </div>
         </div>
         
-        <Badge variant={getPriorityColor(task.priority)}>
-          {task.priority}
+<Badge variant={getPriorityColor(task.priority_c || task.priority)}>
+          {task.priority_c || task.priority}
         </Badge>
       </div>
 
       <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-        <div className="text-xs text-slate-500 space-y-1">
-          <div>Created {format(new Date(task.createdAt), "MMM dd, yyyy")}</div>
-          {isCompleted && task.completedAt && (
+<div className="text-xs text-slate-500 space-y-1">
+          <div>Created {format(new Date(task.created_at_c || task.createdAt || task.CreatedOn), "MMM dd, yyyy")}</div>
+          {isCompleted && (task.completed_at_c || task.completedAt) && (
             <div className="text-success-600">
-              Completed {format(new Date(task.completedAt), "MMM dd, yyyy")}
+              Completed {format(new Date(task.completed_at_c || task.completedAt), "MMM dd, yyyy")}
             </div>
           )}
         </div>
