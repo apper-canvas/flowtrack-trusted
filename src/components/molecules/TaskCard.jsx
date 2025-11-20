@@ -110,7 +110,49 @@ const isCompleted = (task.status_c || task.status) === "completed"
                 </div>
               </div>
             ) : (
-              <>
+<>
+                {/* File Attachments Section */}
+                {task.attachedFiles && task.attachedFiles.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-slate-100">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <ApperIcon name="Paperclip" size={14} className="text-slate-400" />
+                      <span className="text-xs text-slate-500 font-medium">
+                        {task.attachedFiles.length} file{task.attachedFiles.length !== 1 ? 's' : ''} attached
+                      </span>
+                    </div>
+                    <div className="space-y-1">
+                      {task.attachedFiles.slice(0, 3).map((file, index) => (
+                        <div 
+                          key={file.Id || index}
+                          className="flex items-center justify-between p-2 bg-slate-50 rounded text-xs"
+                        >
+                          <div className="flex items-center space-x-2 flex-1 min-w-0">
+                            <ApperIcon name="File" size={12} className="text-slate-400 flex-shrink-0" />
+                            <span className="text-slate-600 truncate">
+                              {file.file_name_c || file.Name || 'Untitled File'}
+                            </span>
+                          </div>
+                          {file.file_data_c && file.file_data_c.url && (
+                            <a 
+                              href={file.file_data_c.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary-500 hover:text-primary-600 flex-shrink-0"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <ApperIcon name="Download" size={12} />
+                            </a>
+                          )}
+                        </div>
+                      ))}
+                      {task.attachedFiles.length > 3 && (
+                        <div className="text-xs text-slate-400 pl-2">
+                          +{task.attachedFiles.length - 3} more file{task.attachedFiles.length - 3 !== 1 ? 's' : ''}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 <h3 className={cn(
                   "text-lg font-semibold text-slate-900 leading-tight",
                   isCompleted && "line-through text-slate-500"

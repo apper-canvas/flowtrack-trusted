@@ -1,5 +1,6 @@
-import { getApperClient } from "@/services/apperClient";
 import { toast } from "react-toastify";
+import React from "react";
+import { getApperClient } from "@/services/apperClient";
 
 const tableName = "tasks_c";
 
@@ -80,34 +81,28 @@ export const taskService = {
     }
   },
 
-  async create(taskData) {
+async create(taskData, uploadedFiles = []) {
     try {
       const apperClient = getApperClient();
-      if (!apperClient) {
-        throw new Error("ApperClient not initialized");
-      }
-
-      // Map UI data to database fields (only Updateable fields)
-      const recordData = {
-        Name: taskData.title_c || taskData.title,
-        title_c: taskData.title_c || taskData.title,
-        description_c: taskData.description_c || taskData.description,
-        priority_c: taskData.priority_c || taskData.priority,
-        status_c: taskData.status_c || taskData.status,
-        created_at_c: taskData.created_at_c || taskData.createdAt || new Date().toISOString(),
-        completed_at_c: taskData.completed_at_c || taskData.completedAt || null
-      };
-
-      // Filter out undefined/null values
-      const filteredData = Object.fromEntries(
-        Object.entries(recordData).filter(([key, value]) => value !== undefined && value !== null && value !== "")
-      );
+      
+      // Filter out any fields that shouldn't be sent
+      const filteredData = {};
+      const updateableFields = ['title_c', 'description_c', 'priority_c', 'status_c', 'created_at_c', 'completed_at_c', 'Tags'];
+      
+      updateableFields.forEach(field => {
+        if (taskData[field] !== undefined && taskData[field] !== null && taskData[field] !== '') {
+          filteredData[field] = taskData[field];
+        }
+      });
+      
+      // Set Name field to the same as title for consistency
+      if (filteredData.title_c) filteredData.Name = filteredData.title_c;
 
       const params = {
         records: [filteredData]
       };
 
-      const response = await apperClient.createRecord(tableName, params);
+const response = await apperClient.createRecord(tableName, params);
 
       if (!response.success) {
         console.error(response.message);
@@ -115,27 +110,87 @@ export const taskService = {
         return null;
       }
 
+      let createdTask = null;
       if (response.results) {
         const successful = response.results.filter(r => r.success);
         const failed = response.results.filter(r => !r.success);
 
         if (failed.length > 0) {
-          console.error(`Failed to create ${failed.length} records:`, failed);
+          console.error(`Failed to create task: ${JSON.stringify(failed)}`);
           failed.forEach(record => {
-            record.errors?.forEach(error => toast.error(`${error.fieldLabel}: ${error}`));
             if (record.message) toast.error(record.message);
           });
+          return null;
         }
 
-        return successful.length > 0 ? successful[0].data : null;
+        if (successful.length > 0) {
+          createdTask = successful[0].data;
+          toast.success("Task created successfully");
+          
+          // Handle file uploads if provided
+          if (uploadedFiles && uploadedFiles.length > 0 && createdTask) {
+            const { fileService } = await import("./fileService");
+            await fileService.create({
+              Name: createdTask.title_c || 'Task File',
+              task_c: createdTask.Id
+            }, uploadedFiles);
+          }
+        }
       }
 
-      return null;
+      return createdTask;
     } catch (error) {
       console.error("Error creating task:", error?.response?.data?.message || error);
-      throw error;
+      toast.error("Failed to create task");
+      return null;
     }
-  },
+},
+
+  async getTasksWithFiles() {
+    try {
+      const apperClient = getApperClient();
+      const params = {
+        fields: [
+          {"field": {"Name": "Id"}},
+          {"field": {"Name": "Name"}},
+          {"field": {"Name": "title_c"}},
+          {"field": {"Name": "description_c"}},
+          {"field": {"Name": "priority_c"}},
+          {"field": {"Name": "status_c"}},
+          {"field": {"Name": "created_at_c"}},
+          {"field": {"Name": "completed_at_c"}},
+          {"field": {"Name": "Tags"}}
+        ],
+        orderBy: [{"fieldName": "Id", "sorttype": "DESC"}]
+      };
+
+const response = await apperClient.fetchRecords(tableName, params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        return [];
+      }
+
+      const tasks = response.data || [];
+
+      // Get files for each task
+      const { fileService } = await import("./fileService");
+      const tasksWithFiles = await Promise.all(
+        tasks.map(async (task) => {
+          const files = await fileService.getFilesByTaskId(task.Id);
+          return {
+            ...task,
+            attachedFiles: files
+          };
+        })
+      );
+
+      return tasksWithFiles;
+    } catch (error) {
+      console.error("Error fetching tasks with files:", error?.response?.data?.message || error);
+      return [];
+    }
+},
 
   async update(id, updates) {
     try {

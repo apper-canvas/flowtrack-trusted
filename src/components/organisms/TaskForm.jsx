@@ -5,14 +5,15 @@ import Input from "@/components/atoms/Input"
 import Select from "@/components/atoms/Select"
 import Textarea from "@/components/atoms/Textarea"
 import ApperIcon from "@/components/ApperIcon"
+import ApperFileFieldComponent from "@/components/atoms/ApperFileFieldComponent"
 
 const TaskForm = ({ onAddTask }) => {
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
-  const [priority, setPriority] = useState("medium")
+const [priority, setPriority] = useState("medium")
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
-
+  const [uploadedFiles, setUploadedFiles] = useState([])
   const validateForm = () => {
     const newErrors = {}
     
@@ -23,7 +24,7 @@ const TaskForm = ({ onAddTask }) => {
     return newErrors
   }
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault()
     
     const formErrors = validateForm()
@@ -34,6 +35,19 @@ const TaskForm = ({ onAddTask }) => {
     setIsSubmitting(true)
     
 try {
+// Get uploaded files from the file uploader
+      const { ApperFileUploader } = window.ApperSDK;
+      let files = [];
+      
+      try {
+        if (ApperFileUploader && ApperFileUploader.FileField) {
+          files = await ApperFileUploader.FileField.getFiles('task-files') || uploadedFiles;
+        }
+      } catch (error) {
+        console.error('Error getting files:', error);
+        files = uploadedFiles;
+      }
+
       await onAddTask({
         title_c: title.trim(),
         description_c: description.trim(),
@@ -41,13 +55,23 @@ try {
         status_c: "active",
         created_at_c: new Date().toISOString(),
         completed_at_c: null
-      })
+      }, files)
       
       // Reset form
-      setTitle("")
+setTitle("")
       setDescription("")
       setPriority("medium")
       setErrors({})
+      setUploadedFiles([])
+      
+      // Clear the file uploader
+      if (window.ApperSDK && window.ApperSDK.ApperFileUploader) {
+        try {
+          await window.ApperSDK.ApperFileUploader.FileField.clearField('task-files');
+        } catch (error) {
+          console.error('Error clearing file field:', error);
+        }
+      }
     } catch (error) {
       console.error("Error adding task:", error)
     } finally {
@@ -125,7 +149,27 @@ try {
               rows={3}
             />
           </div>
-
+{/* File Upload Section */}
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-slate-700">
+              Attach Files
+            </label>
+            <ApperFileFieldComponent
+              elementId="task-files"
+              config={{
+                fieldKey: 'task-files',
+                fieldName: 'file_data_c',
+                tableName: 'files_c',
+                apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+                apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY,
+                existingFiles: uploadedFiles,
+                fileCount: uploadedFiles.length
+              }}
+            />
+            <p className="text-sm text-slate-500">
+              You can upload multiple files to attach to this task.
+            </p>
+          </div>
           <div className="space-y-2">
             <label className="block text-sm font-medium text-slate-700">
               Priority
