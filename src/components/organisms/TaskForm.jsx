@@ -42,13 +42,14 @@ try {
   try {
         console.log('inside try');
         if (ApperFileUploader && ApperFileUploader.FileField) {
-          files = await ApperFileUploader.FileField.getFiles('task-files') || uploadedFiles;
+          files = await ApperFileUploader.FileField.getFiles('task-files');
         }
       } catch (error) {
         console.error('Error getting files:', error);
         files = uploadedFiles;
   }
-      console.log('files::', files);
+  console.log('files::', files);
+  console.log('uploadedFiles:', uploadedFiles)
 
       await onAddTask({
         title_c: title.trim(),
@@ -57,7 +58,7 @@ try {
         status_c: "active",
         created_at_c: new Date().toISOString(),
         completed_at_c: null,
-        file_data_c: files
+        file_data_c: files || uploadedFiles
       })
       
       // Reset form
@@ -166,7 +167,10 @@ try {
                 apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
                 apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY,
                 existingFiles: uploadedFiles,
-                fileCount: uploadedFiles.length
+                fileCount: uploadedFiles.length,
+                onUploadedFilesChanged: (files) => {
+                  setUploadedFiles(files);
+                }
               }}
             />
             <p className="text-sm text-slate-500">
