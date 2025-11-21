@@ -54,8 +54,9 @@ try {
         priority_c: priority,
         status_c: "active",
         created_at_c: new Date().toISOString(),
-        completed_at_c: null
-      }, files)
+        completed_at_c: null,
+        files: files
+      })
       
       // Reset form
 setTitle("")
