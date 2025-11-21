@@ -5,7 +5,7 @@
         "conditions": [
           {
             "label": "Dashboard is accessible to all users",
-            "rule": "public"
+            "rule": "authenticated"
           }
         ]
       }
