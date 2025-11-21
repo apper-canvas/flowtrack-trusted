@@ -87,7 +87,7 @@ async create(taskData, uploadedFiles = []) {
       
       // Filter out any fields that shouldn't be sent
       const filteredData = {};
-      const updateableFields = ['title_c', 'description_c', 'priority_c', 'status_c', 'created_at_c', 'completed_at_c', 'Tags', 'file_data_c'];
+      const updateableFields = ['title_c', 'description_c', 'priority_c', 'status_c', 'created_at_c', 'completed_at_c', 'Tags'];
       
       updateableFields.forEach(field => {
         if (taskData[field] !== undefined && taskData[field] !== null && taskData[field] !== '') {
