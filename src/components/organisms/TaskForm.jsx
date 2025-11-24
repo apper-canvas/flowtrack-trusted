@@ -37,17 +37,18 @@ const handleSubmit = async (e) => {
 try {
 // Get uploaded files from the file uploader
       const { ApperFileUploader } = window.ApperSDK;
+// Initialize files at component scope to avoid undefined references
       let files = [];
       
-  try {
+      try {
         console.log('inside try');
         if (ApperFileUploader && ApperFileUploader.FileField) {
           files = await ApperFileUploader.FileField.getFiles('task-files');
         }
       } catch (error) {
         console.error('Error getting files:', error);
-        files = uploadedFiles;
-  }
+        files = uploadedFiles || [];
+      }
   console.log('files::', files);
   console.log('uploadedFiles:', uploadedFiles)
 
