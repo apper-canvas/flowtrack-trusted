@@ -13,7 +13,8 @@ const TaskForm = ({ onAddTask }) => {
 const [priority, setPriority] = useState("medium")
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [uploadedFiles, setUploadedFiles] = useState([])
+const [uploadedFiles, setUploadedFiles] = useState([])
+  const [files, setFiles] = useState([])
   const validateForm = () => {
     const newErrors = {}
     
@@ -38,17 +39,19 @@ try {
 // Get uploaded files from the file uploader
       const { ApperFileUploader } = window.ApperSDK;
 // Initialize files at component scope to avoid undefined references
-      let files = [];
+      let currentFiles = [];
       
       try {
         console.log('inside try');
         if (ApperFileUploader && ApperFileUploader.FileField) {
-          files = await ApperFileUploader.FileField.getFiles('task-files');
+          currentFiles = await ApperFileUploader.FileField.getFiles('task-files');
         }
       } catch (error) {
         console.error('Error getting files:', error);
-        files = uploadedFiles || [];
+        currentFiles = uploadedFiles || [];
       }
+      
+      setFiles(currentFiles);
   console.log('files::', files);
   console.log('uploadedFiles:', uploadedFiles)
 
@@ -59,7 +62,7 @@ try {
         status_c: "active",
         created_at_c: new Date().toISOString(),
         completed_at_c: null,
-        file_data_c: files || uploadedFiles
+file_data_c: files || uploadedFiles
       })
       
       // Reset form
