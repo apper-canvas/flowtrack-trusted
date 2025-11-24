@@ -166,8 +166,8 @@ try {
                 tableName: 'files_c',
                 apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
                 apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY,
-                existingFiles: uploadedFiles,
-                fileCount: uploadedFiles.length,
+                existingFiles: files,
+                fileCount: files.length,
                 onUploadedFilesChanged: (files) => {
                   setUploadedFiles(files);
                 }
