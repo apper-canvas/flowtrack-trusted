@@ -42,7 +42,7 @@ try {
   try {
         console.log('inside try');
         if (ApperFileUploader && ApperFileUploader.FileField) {
-          files = await ApperFileUploader.FileField.getFiles('task-files');
+          files = await ApperFileUploader.FileField.getAllFiles('task-files');
         }
       } catch (error) {
         console.error('Error getting files:', error);
