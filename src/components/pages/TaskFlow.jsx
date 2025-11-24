@@ -41,6 +41,7 @@ const TaskFlow = () => {
     console.log('taskData::', taskData);
     try {
       const newTask = await taskService.create(taskData)
+      //const newFile = await fileService.create(taskData.file_data_c)
       setTasks(prev => [newTask, ...prev])
       toast.success("Task added successfully!")
     } catch (err) {
