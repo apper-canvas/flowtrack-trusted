@@ -79,7 +79,7 @@ class FileService {
       const records = uploadedFiles.map(file => ({
         Name: file.name || fileData.Name,
         file_name_c: file.name || fileData.file_name_c,
-        file_data_c: file,
+        file_data_c: window.ApperSDK.ApperFileUploader.toCreateFormat(file),
         task_c: parseInt(fileData.task_c),
         Tags: fileData.Tags || ""
       }));
