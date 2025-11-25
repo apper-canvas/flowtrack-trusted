@@ -62,7 +62,7 @@ try {
         status_c: "active",
         created_at_c: new Date().toISOString(),
         completed_at_c: null,
-file_data_c: files || uploadedFiles
+        file_data_c: files || uploadedFiles
       })
       
       // Reset form
