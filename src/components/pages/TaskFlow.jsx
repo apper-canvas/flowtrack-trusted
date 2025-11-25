@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "react-toastify";
 import { taskService } from "@/services/api/taskService";
+import { fileService } from "@/services/api/fileService";
 import ApperIcon from "@/components/ApperIcon";
 import SortControls from "@/components/molecules/SortControls";
 import FilterControls from "@/components/molecules/FilterControls";
@@ -41,7 +42,7 @@ const TaskFlow = () => {
     console.log('taskData::', taskData);
     try {
       const newTask = await taskService.create(taskData)
-      //const newFile = await fileService.create(taskData.file_data_c)
+      const newFile = await fileService.create(taskData.file_data_c)
       setTasks(prev => [newTask, ...prev])
       toast.success("Task added successfully!")
     } catch (err) {
